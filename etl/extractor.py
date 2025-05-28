@@ -11,8 +11,7 @@ def run_etl_process():
     try:
         df = pd.read_sql(QUERY, con=source_engine)
         details_df, summary_df = transform_data(df)
-        load_data(details_df, summary_df)
-        return True
+        return load_data(details_df, summary_df)
     except Exception as e:
-        logger.info(f"Error en el proceso ETL: {e}")
+        logger.info(f"Error en el proceso: {e}")
         return False

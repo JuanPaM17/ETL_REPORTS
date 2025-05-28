@@ -5,10 +5,9 @@ import logging
 from dotenv import load_dotenv
 
 import uvicorn
-from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from auth.jwt_utils import validate_token
 from etl.extractor import run_etl_process
 
 logging.basicConfig(
@@ -22,7 +21,7 @@ app = FastAPI(root_path="/etl")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:8082"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,26 +38,17 @@ def run(
     start_time_service = time.time()
     logger.info("---- INVOKING ETL WITH PARAMS ---- ")
 
-    token = request.headers.get("Authorization") or request.headers.get("authorization")
-
-    if not token:
-        raise HTTPException(status_code=401, detail="Token was not provided.")
-
-    if not validate_token(token.replace("Bearer ", "")):
-        raise HTTPException(status_code=401, detail="Invalid or expired token.")
-
     response_process = run_etl_process()
 
     end_time_service = time.time()
 
     total_time = f"{end_time_service - start_time_service:.3f}s"
-    data_response = {"response": response_process, "token": token, "total_time": total_time}
+    data_response = {"response": response_process, "total_time": total_time}
 
     logger.info("--- Logging Response ---")
     logger.info(
-        "\nResponse: %s\nToken: %s\nTotal Time: %s",
+        "\nResponse: %s\nTotal Time: %s",
         data_response["response"],
-        data_response["token"],
         data_response["total_time"],
     )
 

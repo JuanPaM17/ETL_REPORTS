@@ -1,14 +1,12 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-# 🔗 Conexiones MySQL
 source_url = "mysql+mysqlconnector://root:root@localhost:3306/bmnitro"
 dest_url = "mysql+mysqlconnector://root:root@localhost:3306/etl_dashboard"
 
 source_engine = create_engine(source_url)
 dest_engine = create_engine(dest_url)
 
-# 📥 Consulta SQL completa
 query = """
 SELECT 
     m.order_number,
@@ -39,12 +37,7 @@ LEFT JOIN shipping_method sm ON m.shipping_method_id = sm.id
 LEFT JOIN movement_status ms ON m.movement_status_id = ms.id
 """
 
-# 📤 Leer desde bmnitro
 df_details = pd.read_sql(query, con=source_engine)
-
-# ==========================================
-# 1. DETALLES DE PRODUCTOS
-# ==========================================
 
 df_details_cleaned = df_details[[
     'order_number',
@@ -55,17 +48,10 @@ df_details_cleaned = df_details[[
     'subtotal'
 ]]
 
-# 💾 Guardar detalles
 df_details_cleaned.to_sql('order_details_summary', con=dest_engine, if_exists='replace', index=False)
 
-# ==========================================
-# 2. RESUMEN DE ÓRDENES
-# ==========================================
-
-# 🧼 Llenar NaN con "N/A" para evitar exclusiones
 df_filled = df_details.fillna("N/A")
 
-# 📊 Agrupar SOLO por columnas de orden
 df_summary = df_filled.groupby([
     'order_number',
     'order_date',
@@ -82,10 +68,6 @@ df_summary = df_filled.groupby([
     'subtotal': 'sum'
 }).rename(columns={'subtotal': 'total'})
 
-# 💾 Guardar resumen
 df_summary.to_sql('orders_summary', con=dest_engine, if_exists='replace', index=False)
 
-# ✅ Final
-print("✅ Datos exportados correctamente a 'etl_dashboard':")
-print("- Tabla: orders_summary")
-print("- Tabla: order_details_summary")
+print("Datos exportados correctamente")
