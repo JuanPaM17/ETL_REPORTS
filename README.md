@@ -9,7 +9,7 @@ python -m pip install --upgrade pip
 # Install required packages
 pip install -r requirements.txt
 ```
-
+ 
 **Windows virtual environment**
 ```sh
 # Windows PS
